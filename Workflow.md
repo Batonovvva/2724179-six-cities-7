@@ -66,6 +66,31 @@ npm start
 
 В процессе запуска проекта будет выполнен процесс «Сборки проекта» и запуска результирующего кода.
 
+#### Запустить CLI
+
+```bash
+npm run cli -- --help
+```
+
+Собирает проект и запускает приложение с интерфейсом командной строки.
+
+#### Запустить тестовый JSON-сервер
+
+```bash
+npm run mock:server
+```
+
+Запускает JSON-server на порту `3000`. Заготовки предложений доступны по адресу `http://localhost:3000/offers`.
+
+Например, после запуска сервера можно создать и прочитать тестовый TSV-файл:
+
+```bash
+npm run cli -- --generate 10 ./mocks/generated/offers.tsv http://localhost:3000/offers
+npm run cli -- --import ./mocks/generated/offers.tsv
+```
+
+Директория `mocks/generated` исключена из Git.
+
 ## Структура проекта
 
 ### Директория `src`
