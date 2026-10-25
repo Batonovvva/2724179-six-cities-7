@@ -22,6 +22,6 @@ export class RestConfig implements Config {
       throw new Error('Настройки ещё не загружены');
     }
 
-    return this.configuration.get(key);
+    return this.configuration.get(key) as AppConfig[T];
   }
 }

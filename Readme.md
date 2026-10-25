@@ -32,6 +32,22 @@ _`.editorconfig`, `.gitattributes`, `.gitignore`._
 
 ---
 
+## MongoDB и импорт данных
+
+Запустите MongoDB и интерфейс mongo-express:
+
+```bash
+docker compose up -d
+```
+
+MongoDB будет доступна на порту `27017`, а mongo-express — по адресу
+`http://localhost:8081`. Для импорта предложений передайте путь к TSV-файлу и
+строку подключения к базе данных:
+
+```bash
+npm run cli -- --import ./mocks/test.tsv "mongodb://admin:test@localhost:27017/six-cities?authSource=admin"
+```
+
 ## Памятка
 
 ### 1. Зарегистрируйтесь на Гитхабе
