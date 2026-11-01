@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 
-import {createReadStream} from 'node:fs';
-import {readFile} from 'node:fs/promises';
+import {createReadStream, createWriteStream} from 'node:fs';
+import {mkdir, readFile} from 'node:fs/promises';
+import {dirname} from 'node:path';
 import {createInterface} from 'node:readline';
+import {Readable} from 'node:stream';
+import {pipeline} from 'node:stream/promises';
 import chalk from 'chalk';
+import got from 'got';
 import {createOffer} from './helpers/create-offer.js';
+import {generateOffer} from './helpers/generate-offer.js';
+import {offerToTsv} from './helpers/offer-to-tsv.js';
+import {MockOffer} from './types/mock-offer.type.js';
 
 const HELP_TEXT = `
 Программа для подготовки данных для REST API сервера.
@@ -42,15 +49,43 @@ async function importOffers(filePath: string | undefined): Promise<void> {
 
     const offer = createOffer(line);
     importedOffers++;
-    console.log(chalk.cyan(`Предложение №${importedOffers}:`));
-    console.log(chalk.white(JSON.stringify(offer, null, 2)));
+    console.log(chalk.cyan(`Предложение №${importedOffers}: ${offer.title} (${offer.city.name})`));
   }
 
   console.log(chalk.green(`Импорт завершён. Загружено предложений: ${importedOffers}.`));
 }
 
+async function generateOffers(
+  countText: string | undefined,
+  filePath: string | undefined,
+  url: string | undefined
+): Promise<void> {
+  const count = Number(countText);
+
+  if (!countText || !Number.isSafeInteger(count) || count < 1 || !filePath || !url) {
+    throw new Error('Использование: --generate <n> <filepath> <url>. n должно быть целым положительным числом.');
+  }
+
+  const templates = await got.get(url).json<MockOffer[]>();
+
+  if (!Array.isArray(templates) || templates.length === 0) {
+    throw new Error('JSON-сервис должен вернуть непустой список заготовок.');
+  }
+
+  await mkdir(dirname(filePath), {recursive: true});
+
+  function* offerLines(): Generator<string> {
+    for (let index = 0; index < count; index++) {
+      yield `${offerToTsv(generateOffer(templates))}\n`;
+    }
+  }
+
+  await pipeline(Readable.from(offerLines()), createWriteStream(filePath, {encoding: 'utf-8'}));
+  console.log(chalk.green(`Создан файл ${filePath}. Предложений: ${count}.`));
+}
+
 async function run(): Promise<void> {
-  const [command, commandArgument] = process.argv.slice(2);
+  const [command, ...commandArguments] = process.argv.slice(2);
 
   switch (command) {
     case undefined:
@@ -61,7 +96,10 @@ async function run(): Promise<void> {
       await showVersion();
       break;
     case '--import':
-      await importOffers(commandArgument);
+      await importOffers(commandArguments[0]);
+      break;
+    case '--generate':
+      await generateOffers(commandArguments[0], commandArguments[1], commandArguments[2]);
       break;
     default:
       console.log(chalk.red(`Неизвестная команда: ${command}`));
