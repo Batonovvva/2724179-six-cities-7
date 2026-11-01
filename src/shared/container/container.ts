@@ -1,5 +1,8 @@
 import {Container} from 'inversify';
 import {Application} from '../../application.js';
+import {CommentEntity, CommentModel} from '../../modules/comment/comment.entity.js';
+import {CommentService} from '../../modules/comment/comment-service.interface.js';
+import {DefaultCommentService} from '../../modules/comment/default-comment.service.js';
 import {DefaultOfferService} from '../../modules/offer/default-offer.service.js';
 import {OfferEntity, OfferModel} from '../../modules/offer/offer.entity.js';
 import {OfferService} from '../../modules/offer/offer-service.interface.js';
@@ -25,3 +28,5 @@ container.bind<ReturnModelType<typeof UserEntity>>(Component.UserModel).toConsta
 container.bind<UserService>(Component.UserService).to(DefaultUserService).inSingletonScope();
 container.bind<ReturnModelType<typeof OfferEntity>>(Component.OfferModel).toConstantValue(OfferModel);
 container.bind<OfferService>(Component.OfferService).to(DefaultOfferService).inSingletonScope();
+container.bind<ReturnModelType<typeof CommentEntity>>(Component.CommentModel).toConstantValue(CommentModel);
+container.bind<CommentService>(Component.CommentService).to(DefaultCommentService).inSingletonScope();
